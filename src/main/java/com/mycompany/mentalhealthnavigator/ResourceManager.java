@@ -11,7 +11,7 @@ public class ResourceManager {
         loadSampleData();
     }
     
-    // Temporary method for testing - Data Developer will replace this
+    // Temporary method for testing
     private void loadSampleData() {
         resources.add(new Resource(
             "National Suicide Prevention Lifeline",
