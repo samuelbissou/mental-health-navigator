@@ -16,7 +16,11 @@ public class MentalHealthNavigator extends JFrame {
     private JButton searchButton;
     private JButton crisisButton;
     private JButton clearButton;
+    private JButton favoritesButton;
+    private JButton viewFavoritesButton;
+    private JButton quizButton;
     private JComboBox<String> categoryFilter;
+    
     
     public MentalHealthNavigator() {
         // Initialize resource manager
@@ -28,10 +32,11 @@ public class MentalHealthNavigator extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
+        
         // Create GUI
         setupGUI();
         
-        // YOUR CODE - Add event handlers
+        // Create Event handlers
         setupEventHandlers();
         
         setVisible(true);
@@ -41,9 +46,12 @@ public class MentalHealthNavigator extends JFrame {
         // TOP PANEL - Search and Crisis
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new FlowLayout());
+        topPanel.setBackground(new Color(152, 251, 152));
+        
         
         JLabel titleLabel = new JLabel("Mental Health Resources");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        
         
         crisisButton = new JButton("🚨 CRISIS: Call 988");
         crisisButton.setBackground(new Color(220, 53, 69));
@@ -57,15 +65,35 @@ public class MentalHealthNavigator extends JFrame {
         // SEARCH PANEL
         JPanel searchPanel = new JPanel();
         searchPanel.setLayout(new FlowLayout());
+        searchPanel.setBackground(new Color(152, 251, 152));
         
         searchField = new JTextField(30);
         searchButton = new JButton("Search");
         clearButton = new JButton("Clear");
+        favoritesButton = new JButton("⭐ Add to Favorites");
+        viewFavoritesButton = new JButton("📋 View Favorites");
+        quizButton = new JButton("🧠 Wellness Quiz");
+        
         
         searchPanel.add(new JLabel("Search:"));
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
         searchPanel.add(clearButton);
+        searchPanel.add(favoritesButton);
+        searchPanel.add(viewFavoritesButton);
+        searchPanel.add(quizButton);
+        
+        //Button effects
+        searchButton.setBackground(new Color(60, 179, 113)); 
+        searchButton.setForeground(Color.WHITE);
+        clearButton.setBackground(new Color(60, 179, 113)); 
+        clearButton.setForeground(Color.WHITE);
+        favoritesButton.setBackground(new Color(255, 215, 0)); 
+        favoritesButton.setForeground(Color.BLACK);
+        viewFavoritesButton.setBackground(new Color(135, 206, 250)); 
+        viewFavoritesButton.setForeground(Color.BLACK);
+        quizButton.setBackground(new Color(147, 112, 219)); // Purple
+        quizButton.setForeground(Color.WHITE);
         
         String[] categories = {"All", "Crisis", "Information","Online Resource","Support Group","Therapy"};
         categoryFilter = new JComboBox<>(categories);
@@ -85,20 +113,26 @@ public class MentalHealthNavigator extends JFrame {
         tableModel = new DefaultTableModel(columns, 0);
         resourceTable = new JTable(tableModel);
         
+
+        resourceTable.setForeground(Color.BLACK);
+        resourceTable.setGridColor(Color.BLACK);
+        
         JScrollPane scrollPane = new JScrollPane(resourceTable);
         add(scrollPane, BorderLayout.CENTER);
         
+        
         // Display all resources initially
         displayResources(resourceManager.getAllResources());
+        getContentPane().setBackground(new Color(245, 255, 250));
+        
     }
     
-    // ========================================
-    // YOUR SECTION STARTS HERE - EVENT HANDLERS
-    // ========================================
+    // ==================
+    // EVENT HANDLERS
+    // ==================
     
     private void setupEventHandlers() {
-        // TODO: YOU implement these!
-        
+
         // Search button
         searchButton.addActionListener(e -> handleSearch());
         
@@ -107,6 +141,15 @@ public class MentalHealthNavigator extends JFrame {
         
         // Clear button
         clearButton.addActionListener(e -> handleClear());
+        
+        // Favorites button
+        favoritesButton.addActionListener(e -> handleAddToFavorites());
+        
+        // View Favorites button
+        viewFavoritesButton.addActionListener(e -> handleViewFavorites());
+        
+        // Quiz button
+        quizButton.addActionListener(e -> handleWellnessQuiz());
         
         // Enter key in search field
         searchField.addActionListener(e -> handleSearch());
@@ -183,7 +226,6 @@ public class MentalHealthNavigator extends JFrame {
 }
     
     private void handleCrisis() {
-        // TODO: YOU implement this!
         JOptionPane.showMessageDialog(this,
             "🚨 CRISIS SUPPORT 🚨\n\n" +
             "National Suicide Prevention Lifeline\n" +
@@ -196,10 +238,53 @@ public class MentalHealthNavigator extends JFrame {
     }
     
     private void handleClear() {
-        // TODO: YOU implement this!
         searchField.setText("");
         displayResources(resourceManager.getAllResources());
     }
+    
+    private void handleAddToFavorites() {
+    int selectedRow = resourceTable.getSelectedRow();
+    
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this,
+            "Please select a resource first",
+            "No Selection",
+            JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    // Get the selected resource
+    String name = (String) tableModel.getValueAt(selectedRow, 0);
+    
+    ArrayList<Resource> all = resourceManager.getAllResources();
+    for (Resource r : all) {
+        if (r.getName().equals(name)) {
+            resourceManager.saveFavorite(r);
+            JOptionPane.showMessageDialog(this,
+                "Added to favorites!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE);
+            break;
+        }
+    }
+    }
+    
+    private void handleViewFavorites() {
+    ArrayList<Resource> favorites = resourceManager.loadFavorites();
+    
+    if (favorites.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+            "No favorites saved yet",
+            "Favorites",
+            JOptionPane.INFORMATION_MESSAGE);
+    } else {
+        displayResources(favorites);
+        JOptionPane.showMessageDialog(this,
+            "Showing " + favorites.size() + " favorites",
+            "Favorites",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    }   
     
     private void handleCategoryFilter() {
     String selected = (String) categoryFilter.getSelectedItem();
@@ -211,12 +296,112 @@ public class MentalHealthNavigator extends JFrame {
         displayResources(filtered);
         }
     }
+    private void handleWellnessQuiz() {
+    int score = 0;
+    
+    // Question 1
+    String[] options1 = {"Never", "Sometimes", "Often", "Always"};
+    int answer1 = JOptionPane.showOptionDialog(this,
+        "How often do you feel stressed or overwhelmed?",
+        "Wellness Quiz - Question 1 of 5",
+        JOptionPane.DEFAULT_OPTION,
+        JOptionPane.QUESTION_MESSAGE,
+        null, options1, options1[0]);
+    
+    if (answer1 == -1) return; // User cancelled
+    score += answer1;
+    
+    // Question 2
+    String[] options2 = {"Very Poor", "Poor", "Fair", "Good", "Excellent"};
+    int answer2 = JOptionPane.showOptionDialog(this,
+        "How would you rate your sleep quality?",
+        "Wellness Quiz - Question 2 of 5",
+        JOptionPane.DEFAULT_OPTION,
+        JOptionPane.QUESTION_MESSAGE,
+        null, options2, options2[2]);
+    
+    if (answer2 == -1) return;
+    score += (4 - answer2); // Reverse scoring
+    
+    // Question 3
+    String[] options3 = {"Never", "Rarely", "Sometimes", "Often"};
+    int answer3 = JOptionPane.showOptionDialog(this,
+        "How often do you feel sad or anxious?",
+        "Wellness Quiz - Question 3 of 5",
+        JOptionPane.DEFAULT_OPTION,
+        JOptionPane.QUESTION_MESSAGE,
+        null, options3, options3[0]);
+    
+    if (answer3 == -1) return;
+    score += answer3;
+    
+    // Question 4
+    String[] options4 = {"Yes, regularly", "Sometimes", "Rarely", "Never"};
+    int answer4 = JOptionPane.showOptionDialog(this,
+        "Do you engage in activities you enjoy?",
+        "Wellness Quiz - Question 4 of 5",
+        JOptionPane.DEFAULT_OPTION,
+        JOptionPane.QUESTION_MESSAGE,
+        null, options4, options4[0]);
+    
+    if (answer4 == -1) return;
+    score += answer4;
+    
+    // Question 5
+    String[] options5 = {"Very comfortable", "Comfortable", "Uncomfortable", "Very uncomfortable"};
+    int answer5 = JOptionPane.showOptionDialog(this,
+        "How comfortable are you reaching out for support?",
+        "Wellness Quiz - Question 5 of 5",
+        JOptionPane.DEFAULT_OPTION,
+        JOptionPane.QUESTION_MESSAGE,
+        null, options5, options5[0]);
+    
+    if (answer5 == -1) return;
+    score += answer5;
+    
+    // Show results
+    showQuizResults(score);
+    }
+    
+    private void showQuizResults(int score) {
+    String result = "";
+    String recommendation = "";
+    
+    if (score <= 4) {
+        result = "✅ Great Mental Wellness!\n\n";
+        recommendation = "You're doing well! Continue with:\n" +
+                        "• Maintaining healthy habits\n" +
+                        "• Staying connected with others\n" +
+                        "• Practicing self-care\n\n" +
+                        "Resources: Check out our Information category";
+    } else if (score <= 8) {
+        result = "⚠️ Moderate Stress Level\n\n";
+        recommendation = "Consider exploring:\n" +
+                        "• Support groups in your area\n" +
+                        "• Online mental health resources\n" +
+                        "• Talking to a counselor\n\n" +
+                        "Resources: Browse our Support Group and Online Resource categories";
+    } else {
+        result = "🚨 Higher Stress/Concern Level\n\n";
+        recommendation = "It might be helpful to:\n" +
+                        "• Talk to a mental health professional\n" +
+                        "• Reach out to crisis support if needed\n" +
+                        "• Connect with trusted friends/family\n\n" +
+                        "Resources: Check our Crisis and Therapy categories\n\n" +
+                        "CRISIS SUPPORT: Call or text 988 anytime";
+    }
+    
+    JOptionPane.showMessageDialog(this,
+        result + "Your Score: " + score + "/15\n\n" + recommendation,
+        "Wellness Quiz Results",
+        JOptionPane.INFORMATION_MESSAGE);
+    }
     
     // ========================================
-    // YOUR SECTION ENDS HERE
+    //
     // ========================================
     
-    // Helper method - GUI Designer might modify this
+    // Helper method 
     private void displayResources(ArrayList<Resource> resources) {
         tableModel.setRowCount(0); // Clear table
         

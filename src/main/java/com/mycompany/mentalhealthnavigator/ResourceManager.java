@@ -4,19 +4,20 @@ import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.PrintWriter;
 
 public class ResourceManager {
     private ArrayList<Resource> resources;
     
     public ResourceManager() {
         resources = new ArrayList<>();
-        // Start with a few hardcoded resources for testing
         loadSampleData();
     }
     
     // Temporary method for testing
     private void loadSampleData() {
-        // Try to load from CSV first
         try {
             loadResourcesFromFile("data/resources.csv");
             System.out.println("Loaded " + resources.size() + " resources from CSV");
@@ -34,7 +35,22 @@ public class ResourceManager {
         }
     }
     
-    
+    public void saveFavorite(Resource r) {
+    try (FileWriter fw = new FileWriter("data/favorites.txt", true);
+         BufferedWriter bw = new BufferedWriter(fw);
+         PrintWriter out = new PrintWriter(bw)) {
+        
+        out.println(r.getName() + "," + 
+                    r.getCategory() + "," + 
+                    r.getPhone() + "," + 
+                    r.getWebsite() + "," + 
+                    r.getDescription() + "," + 
+                    r.getCost());
+        
+    } catch (IOException e) {
+        System.err.println("Error saving favorite: " + e.getMessage());
+    }
+    }
     
     public ArrayList<Resource> getAllResources() {
         return resources;
@@ -74,6 +90,36 @@ public class ResourceManager {
             }
         }
         return results;
+    }
+    
+    
+    
+    public ArrayList<Resource> loadFavorites() {
+    ArrayList<Resource> favorites = new ArrayList<>();
+    
+    try (BufferedReader br = new BufferedReader(new FileReader("data/favorites.txt"))) {
+        String line;
+        
+        while ((line = br.readLine()) != null) {
+            String[] parts = line.split(",");
+            
+            if (parts.length == 6) {
+                Resource r = new Resource(
+                    parts[0], // name
+                    parts[1], // category
+                    parts[2], // phone
+                    parts[3], // website
+                    parts[4], // description
+                    parts[5]  // cost
+                );
+                favorites.add(r);
+            }
+        }
+    } catch (IOException e) {
+        System.out.println("No favorites file found or error reading: " + e.getMessage());
+    }
+    
+    return favorites;
     }
     
     public void loadResourcesFromFile(String filename) {

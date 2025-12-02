@@ -8,7 +8,7 @@ public class Resource {
     private String description;
     private String cost;
     
-    // Constructor
+    // Constructors
     public Resource(String name, String category, String phone, 
                     String website, String description, String cost) {
         this.name = name;
