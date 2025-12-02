@@ -1,6 +1,9 @@
 package com.mycompany.mentalhealthnavigator;
 
 import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class ResourceManager {
     private ArrayList<Resource> resources;
@@ -13,33 +16,25 @@ public class ResourceManager {
     
     // Temporary method for testing
     private void loadSampleData() {
-        resources.add(new Resource(
-            "National Suicide Prevention Lifeline",
-            "Crisis",
-            "988",
-            "suicidepreventionlifeline.org",
-            "24/7 free and confidential support",
-            "Free"
-        ));
-        
-        resources.add(new Resource(
-            "Crisis Text Line",
-            "Crisis",
-            "741741",
-            "crisistextline.org",
-            "Text HOME to 741741",
-            "Free"
-        ));
-        
-        resources.add(new Resource(
-            "NAMI Helpline",
-            "Information",
-            "1-800-950-6264",
-            "nami.org",
-            "Mental health information and support",
-            "Free"
-        ));
+        // Try to load from CSV first
+        try {
+            loadResourcesFromFile("data/resources.csv");
+            System.out.println("Loaded " + resources.size() + " resources from CSV");
+        } catch (Exception e) {
+            System.out.println("Could not load CSV, using hardcoded data");
+            // Fallback to hardcoded resources
+            resources.add(new Resource(
+                "National Suicide Prevention Lifeline",
+                "Crisis",
+                "988",
+                "suicidepreventionlifeline.org",
+                "24/7 free and confidential support",
+                "Free"
+            ));
+        }
     }
+    
+    
     
     public ArrayList<Resource> getAllResources() {
         return resources;
@@ -82,6 +77,28 @@ public class ResourceManager {
     }
     
     public void loadResourcesFromFile(String filename) {
-        // Data Developer will implement CSV reading here
+        resources.clear(); // Clear existing resources
+
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line = br.readLine(); // Skip header line
+
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
+
+                if (parts.length == 6) {
+                    Resource r = new Resource(
+                        parts[0], // name
+                        parts[1], // category
+                        parts[2], // phone
+                        parts[3], // website
+                        parts[4], // description
+                        parts[5]  // cost
+                    );
+                    resources.add(r);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading file: " + e.getMessage());
+        }
     }
 }

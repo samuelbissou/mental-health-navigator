@@ -67,7 +67,7 @@ public class MentalHealthNavigator extends JFrame {
         searchPanel.add(searchButton);
         searchPanel.add(clearButton);
         
-        String[] categories = {"All", "Crisis", "Information"};
+        String[] categories = {"All", "Crisis", "Information","Online Resource","Support Group","Therapy"};
         categoryFilter = new JComboBox<>(categories);
         searchPanel.add(new JLabel("Category:"));
         searchPanel.add(categoryFilter);
@@ -152,25 +152,35 @@ public class MentalHealthNavigator extends JFrame {
     }
     
     private void handleSearch() {
-        // TODO: YOU implement this!
-        String query = searchField.getText();
-        
-        if (query == null || query.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Please enter a search term", 
-                "Search", 
-                JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        
-        ArrayList<Resource> results = resourceManager.searchResources(query);
-        displayResources(results);
-        
+    String query = searchField.getText().trim();
+    
+    // Validation - check if empty
+    if (query.isEmpty()) {
         JOptionPane.showMessageDialog(this, 
-            "Found " + results.size() + " resources", 
-            "Search Results", 
-            JOptionPane.INFORMATION_MESSAGE);
+            "Please enter a search term", 
+            "Invalid Search", 
+            JOptionPane.WARNING_MESSAGE);
+        return;
     }
+    
+    // Validation - check minimum length
+    if (query.length() < 2) {
+        JOptionPane.showMessageDialog(this, 
+            "Please enter at least 2 characters", 
+            "Invalid Search", 
+            JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    // Do the search
+    ArrayList<Resource> results = resourceManager.searchResources(query);
+    displayResources(results);
+    
+    JOptionPane.showMessageDialog(this, 
+        "Found " + results.size() + " resources", 
+        "Search Results", 
+        JOptionPane.INFORMATION_MESSAGE);
+}
     
     private void handleCrisis() {
         // TODO: YOU implement this!
@@ -201,6 +211,7 @@ public class MentalHealthNavigator extends JFrame {
         displayResources(filtered);
         }
     }
+    
     // ========================================
     // YOUR SECTION ENDS HERE
     // ========================================
